@@ -10,7 +10,6 @@ fi
 # Do not change code above this line. Use the PSQL variable above to query your database.
 
 skip_first_line=true
-countries=()
 echo $($PSQL "TRUNCATE TABLE games, teams")
 echo $($PSQL "ALTER SEQUENCE games_game_id_seq RESTART")
 echo $($PSQL "ALTER SEQUENCE teams_team_id_seq RESTART")
@@ -23,48 +22,20 @@ do
     continue
   fi
 
-  pass_win=0
-  counter=1
-  for country in "${countries[@]}"
-  do
-      if [ "$country" == "$winner" ]
-      then
-        pass_win=1
-        winner_id=$counter
-        break
-      fi
-    counter=$counter+1
-  done
-
-  pass_op=0
-  counter=1
-  for country in "${countries[@]}"
-  do
-      if [ "$country" == "$opponent" ]
-      then
-        pass_op=1
-        opponent_id=$counter
-        break
-      fi
-    counter=$counter+1
-  done
-
-  if [  $pass_win -eq 0 ]
+  if [[ -z $($PSQL "SELECT name FROM teams WHERE name='$winner'") ]]
   then
     new_country=$($PSQL "INSERT INTO teams(name) VALUES('$winner')")
-    countries+=("$winner")
-    winner_id=${#countries[@]}
-    echo -e "New country has been added: $winner, id = $winner_id"
+    echo -e "New country has been added: $winner"
   fi
+  winner_id=$($PSQL "SELECT team_id FROM teams WHERE name='$winner'")
 
-  if [ $pass_op -eq 0 ]
+  if [[ -z $($PSQL "SELECT name FROM teams WHERE name='$opponent'") ]]
   then
     new_country=$($PSQL "INSERT INTO teams(name) VALUES('$opponent')")
-    countries+=("$opponent")
-    opponent_id=${#countries[@]}
-    echo -e "New country has been added: $opponent, id = $opponent_id"
+    echo -e "New country has been added: $opponent"
   fi
+  opponent_id=$($PSQL "SELECT team_id FROM teams WHERE name='$opponent'")
 
   new_game=$($PSQL "INSERT INTO games(year, round, winner_id, opponent_id, winner_goals, opponent_goals) VALUES($year, '$round', $winner_id, $opponent_id, $winner_goals, $opponent_goals)")
-  echo -e "New game has been added: $winner vs $opponent"
+  echo -e "New game has been added: $winner vs $opponent" 
 done < "games.csv"
