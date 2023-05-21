@@ -1,2 +1,2 @@
-# Relational-Database
- freeCodeCamp - Relational Database - course projects.
+# Relational Database
+Course is available at: https://www.freecodecamp.org/learn/relational-database/
